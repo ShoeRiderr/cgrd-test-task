@@ -1,8 +1,9 @@
 <?php
 
-use App\Entity\User;
-use App\Handler\Entity\EntityManager;
-use App\Routing\Router;
+use App\App;
+use App\Config;
+use App\Handler\Container;
+use App\Handler\Routing\Router;
 use Dotenv\Dotenv;
 
 require "../vendor/autoload.php";
@@ -10,14 +11,14 @@ require "../vendor/autoload.php";
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->safeLoad();
 
-$router = new Router(
-    require_once('../src/Routing/routes.php')
-);
-new EntityManager();
+$container = new Container();
 
-// If there is a match, he will return the class and method associated
-// to the request as well as route parameters
-if ($match = $router->match()) {
-    $controller = new $match['class']();
-    $controller->{$match['method']}($match['params']);
-}
+$router = new Router(
+    $container,
+    require_once('../routes/web.php')
+);
+
+(new App(
+    $router,
+    new Config($_ENV)
+))->run();

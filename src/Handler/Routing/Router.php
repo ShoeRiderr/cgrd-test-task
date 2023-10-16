@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Routing;
+namespace App\Handler\Routing;
 
-use App\Routing\Attribute\Route;
+use App\Handler\Container;
+use App\Handler\Routing\Attribute\Route;
 
 class Router
 {
@@ -23,8 +24,9 @@ class Router
      * @throws \ReflectionException when the controller does not exist
      */
     public function __construct(
+        private Container $container,
         array $controllers = [],
-        private string $baseURI = '',
+        private string $baseURI = ''
     ) {
         if (!empty($controllers)) {
             $this->addRoutes($controllers);
@@ -84,7 +86,7 @@ class Router
             $baseURI = preg_quote($this->baseURI, '/');
             $request = preg_replace("/^{$baseURI}/", '', $request);
         }
-        $request = (empty($request) ? '/': $request);
+        $request = (empty($request) ? '/' : $request);
 
         foreach ($this->routes as $route) {
             if ($this->matchRequest($request, $route['route'], $params)) {
@@ -117,8 +119,10 @@ class Router
         $requestArray = array_values(array_filter($requestArray, 'strlen'));
         $pathArray = array_values(array_filter($pathArray, 'strlen'));
 
-        if (!(count($requestArray) === count($pathArray))
-            || !(in_array($_SERVER['REQUEST_METHOD'], $route->getMethods(), true))) {
+        if (
+            !(count($requestArray) === count($pathArray))
+            || !(in_array($_SERVER['REQUEST_METHOD'], $route->getMethods(), true))
+        ) {
             return false;
         }
 
@@ -127,7 +131,7 @@ class Router
                 if (str_starts_with($urlPart, '{')) {
                     $routeParameter = explode(' ', preg_replace('/{([\w\-%]+)(<(.+)>)?}/', '$1 $3', $urlPart));
                     $paramName = $routeParameter[0];
-                    $paramRegExp = (empty($routeParameter[1]) ? '[\w\-]+': $routeParameter[1]);
+                    $paramRegExp = (empty($routeParameter[1]) ? '[\w\-]+' : $routeParameter[1]);
 
                     if (preg_match('/^' . $paramRegExp . '$/', $requestArray[$index])) {
                         $params[$paramName] = $requestArray[$index];
@@ -143,5 +147,17 @@ class Router
         }
 
         return true;
+    }
+
+    public function resolve($router)
+    {
+        // If there is a match, he will return the class and method associated
+        // to the request as well as route parameters
+        if ($match = $router->match()) {
+            $controller = $this->container->get($match['class']);
+            $controller->{$match['method']}($match['params']);
+        } else {
+
+        }
     }
 }

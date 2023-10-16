@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Routing\Attribute;
+namespace App\Handler\Routing\Attribute;
 
 #[\Attribute(\Attribute::TARGET_METHOD)]
 class Route

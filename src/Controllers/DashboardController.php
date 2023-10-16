@@ -2,14 +2,12 @@
 
 namespace App\Controllers;
 
-use App\Entity\User;
-use App\Handler\Entity\EntityManager;
-use App\Repository\UserRepository;
-use App\Routing\Attribute\Route;
+use App\Handler\Routing\Attribute\Route;
+use App\Service\PostService;
 
 class DashboardController
 {
-    public function __construct()
+    public function __construct(private PostService $postService)
     {
     }
 

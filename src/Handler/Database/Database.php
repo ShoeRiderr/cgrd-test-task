@@ -2,6 +2,7 @@
 
 namespace App\Handler\Database;
 
+use App\Handler\Container;
 use Exception;
 use Exception\Database\NoQueryException;
 use PDO;
@@ -9,15 +10,19 @@ use PDOException;
 
 final class Database
 {
-    protected static ?array $instances = [];
+    protected static $instance = '';
 
     protected static PDO $connection;
 
     protected $query;
 
-    protected function __construct()
-    {
-        $this->setConnection();
+    private PDO $pdo;
+
+    public function __construct(
+        array $config,
+        private Container $container
+    ) {
+        $this->setConnection($config);
     }
 
     protected function __clone()
@@ -36,62 +41,40 @@ final class Database
 
     public static function getConnection()
     {
-        if (!isset(self::$instances[self::class])) self::$instances[self::class] = new self();
-
         return self::$connection;
     }
 
-    public static function getInstance()
+    public function getInstance()
     {
-        $subclass = static::class;
-
-        if (!isset(self::$instances[$subclass])) {
+        if (!isset(self::$instance)) {
             // Note that here we use the "static" keyword instead of the actual
             // class name. In this context, the "static" keyword means "the name
             // of the current class". That detail is important because when the
             // method is called on the subclass, we want an instance of that
             // subclass to be created here.
 
-            self::$instances[$subclass] = new static();
+            self::$instance = $this->container->get(self::class);
         }
 
-        return self::$instances[$subclass];
+        return self::$instance;
     }
 
-    protected function setConnection(): void
+    protected function setConnection(array $config): void
     {
-        $dbHost = $_ENV['DB_HOST'];
-        $dbDatabase = $_ENV['DB_DATABASE'];
-        $dbUser = $_ENV['DB_USER'];
-        $dbPassword = $_ENV['DB_PASSWORD'];
+        $defaultOptions = [
+            PDO::ATTR_EMULATE_PREPARES   => false,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ];
 
-        self::$connection = new PDO(
-            sprintf(
-                'mysql:host=%s; dbname=%s',
-                $dbHost,
-                $dbDatabase
-            ),
-            $dbUser,
-            $dbPassword
-        );
-    }
-
-    public function query(string $query): self
-    {
-        $this->query = $this->connection->query($query);
-
-        return $this;
-    }
-
-    /**
-     * @return array|bool
-     */
-    public function getAll()
-    {
-        if (!$this->query) {
-            throw new NoQueryException('getAll');
+        try {
+            $this->pdo = new PDO(
+                $config['driver'] . ':host=' . $config['host'] . ';dbname=' . $config['database'],
+                $config['user'],
+                $config['pass'],
+                $config['options'] ?? $defaultOptions
+            );
+        } catch (\PDOException $e) {
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
         }
-
-        return $this->query->fetchAll();
     }
 }

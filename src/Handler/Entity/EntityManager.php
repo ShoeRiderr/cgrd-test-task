@@ -2,7 +2,6 @@
 
 namespace App\Handler\Entity;
 
-use App\Exception\Entity\NoEntityException;
 use App\Exception\Repository\RepositoryNotAttachedToAnyEntity;
 use App\Handler\Entity\Attribute\Entity;
 use App\Handler\Repository\Repository;
