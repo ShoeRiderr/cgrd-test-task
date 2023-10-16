@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace App;
 
 use App\Exception\RouteNotFoundException;
-use App\Handler\Container;
 use App\Handler\Database\Database;
 use App\Handler\Entity\EntityManager;
 use App\Handler\Routing\Router;
