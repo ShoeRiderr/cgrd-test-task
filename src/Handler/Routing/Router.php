@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Handler\Routing;
 
@@ -34,6 +34,15 @@ class Router
         if (!empty($controllers)) {
             $this->addRoutes($controllers);
         }
+    }
+
+    protected function __clone()
+    {
+    }
+
+    public function __wakeup()
+    {
+        throw new \Exception("Cannot unserialize singleton");
     }
 
     /**
@@ -91,7 +100,6 @@ class Router
             $request = preg_replace("/^{$baseURI}/", '', $request);
         }
         $request = (empty($request) ? '/' : $request);
-
         foreach ($this->routes as $route) {
             if ($this->matchRequest($request, $route['route'], $params)) {
                 return [
@@ -153,11 +161,11 @@ class Router
         return true;
     }
 
-    public function resolve($router)
+    public function resolve()
     {
         // If there is a match, he will return the class and method associated
         // to the request as well as route parameters
-        if ($match = $router->match()) {
+        if ($match = $this->match()) {
             $controller = $this->container->get($match['class']);
             $controller->{$match['method']}($match['params']);
         } else {

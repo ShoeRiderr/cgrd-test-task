@@ -58,7 +58,7 @@ class Route
      */
     public function hasParams(): bool
     {
-        return preg_match('/{([\w\-%]+)(<(.+)>)?}/', $this->path);
+        return (bool) preg_match('/{([\w\-%]+)(<(.+)>)?}/', $this->path);
     }
 
     /**

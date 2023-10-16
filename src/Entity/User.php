@@ -7,9 +7,10 @@ namespace App\Entity;
 use App\Handler\Entity\Attribute\Entity;
 use App\Repository\UserRepository;
 use App\Handler\Entity\Attribute\Property;
+use App\Handler\Entity\IEntity;
 
 #[Entity(repositoryClass: UserRepository::class, table: 'users')]
-class User
+class User implements IEntity
 {
     #[Property]
     private int $id;

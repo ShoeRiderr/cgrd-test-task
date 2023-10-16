@@ -1,9 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 // Here you add Controllers with defined routes as a method attributes
 
-use App\Controllers\DashboardController;
+use App\Controller\SecurityController;
+use App\Controller\PostController;
 
 return [
-    DashboardController::class
+    SecurityController::class,
+    PostController::class,
 ];

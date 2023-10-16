@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Handler\Entity;
 
@@ -15,8 +15,8 @@ use ReflectionProperty;
 final class EntityManager
 {
     private static $instance = '';
-    private static array $repositories;
-    private static array $entities;
+    private static array $repositories = [];
+    private static array $entities = [];
 
     public function __construct()
     {
@@ -76,7 +76,7 @@ final class EntityManager
             $notGuardedColumns = [];
             foreach ($entityProps as $entityProp) {
                 $propertyAttributes = $entityProp->getAttributes(Property::class);
-                
+
                 foreach ($propertyAttributes as $propertyAttribute) {
                     $propertyAttributesClass = $propertyAttribute->newInstance();
                     $colName = $propertyAttributesClass->name ?? $entityProp->getName();

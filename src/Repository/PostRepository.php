@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use App\Entity\User;
+use App\Entity\Post;
 use App\Handler\Repository\Repository;
 
-class UserRepository extends Repository
+class PostRepository extends Repository
 {
     public function __construct()
     {
-        parent::__construct(User::class);
+        parent::__construct(Post::class);
     }
 }
