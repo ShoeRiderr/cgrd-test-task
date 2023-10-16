@@ -2,36 +2,28 @@
 
 namespace App\Handler\Repository;
 
-use App\Handler\Database\Database;
+use App\App;
+use App\Handler\Container;
 use App\Handler\Entity\EntityManager;
 use Exception;
 use PDO;
 
 abstract class Repository
 {
-    private $instance = '';
     protected $conn = '';
     protected string $entity = '';
     protected string $table = '';
-    protected string $entityData = '';
-    protected string $entityRepository = '';
+    protected array $repositoryData = [];
+    protected EntityManager $entityManager;
 
-    public function __construct($entity)
+    public function __construct(string $entity, private Container $container)
     {
-        $this->conn = Database::getConnection();
-        $this->entityRepository = EntityManager::getRepositoryByEntity($entity);
-        $this->entityData = EntityManager::getRepositoryData($this->entityRepository::class);
-        $this->table = $this->entityData['table'];
         $this->entity = $entity;
-    }
+        $this->conn = App::db();
 
-    protected function __clone()
-    {
-    }
-
-    public function __wakeup()
-    {
-        throw new Exception("Cannot unserialize Repository class");
+        $this->entityManager = $container->get(EntityManager::class);
+        $this->repositoryData = $this->entityManager->getRepositoryData($this::class);
+        $this->table = $this->repositoryData['table'] ?? '';
     }
 
     public function findById(string|int $id): array|bool
@@ -43,22 +35,7 @@ abstract class Repository
         return $dbh->fetchAll();
     }
 
-    public function getInstance()
-    {
-        if (!isset($this->instance)) {
-            // Note that here we use the "static" keyword instead of the actual
-            // class name. In this context, the "static" keyword means "the name
-            // of the current class". That detail is important because when the
-            // method is called on the subclass, we want an instance of that
-            // subclass to be created here.
-
-            $this->instance = new static($this->entity);
-        }
-
-        return $this->instance;
-    }
-
-    public function fetchAll()
+    public function fetchAll(): array|false
     {
         return $this->conn
             ->query('SELECT * FROM ' . $this->table)

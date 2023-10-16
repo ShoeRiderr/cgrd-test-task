@@ -2,6 +2,7 @@
 
 namespace App\Handler\Routing;
 
+use App\Exception\RouteNotFoundException;
 use App\Handler\Container;
 use App\Handler\Routing\Attribute\Route;
 
@@ -157,7 +158,7 @@ class Router
             $controller = $this->container->get($match['class']);
             $controller->{$match['method']}($match['params']);
         } else {
-
+            throw new RouteNotFoundException();
         }
     }
 }

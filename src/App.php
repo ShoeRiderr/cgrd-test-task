@@ -7,6 +7,7 @@ namespace App;
 use App\Exception\RouteNotFoundException;
 use App\Handler\Container;
 use App\Handler\Database\Database;
+use App\Handler\Entity\EntityManager;
 use App\Handler\Routing\Router;
 
 class App
@@ -15,7 +16,7 @@ class App
 
     public function __construct(protected Router $router, protected Config $config)
     {
-        static::$db = new Database($config->db ?? [], new Container);
+        static::$db = new Database($config->db ?? []);
     }
 
     public static function db(): Database
@@ -26,6 +27,8 @@ class App
     public function run()
     {
         try {
+            new EntityManager();
+
             echo $this->router->resolve($this->router);
         } catch (RouteNotFoundException) {
             http_response_code(404);
