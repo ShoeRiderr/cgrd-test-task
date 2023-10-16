@@ -9,19 +9,7 @@ use Attribute;
 #[Attribute(Attribute::TARGET_CLASS)]
 final class Entity
 {
-    /**
-     * @var string
-     */
-    public string $repositoryClass;
-
-    /**
-     * @var string
-     */
-    public string $table;
-
-    public function __construct(string $repositoryClass, string $table)
+    public function __construct(public readonly string $repositoryClass, public readonly string $table)
     {
-        $this->repositoryClass = $repositoryClass;
-        $this->table = $table;
     }
 }

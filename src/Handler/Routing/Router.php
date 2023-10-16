@@ -63,6 +63,7 @@ class Router
 
                 foreach ($routeAttributes as $routeAttribute) {
                     $route = $routeAttribute->newInstance();
+
                     $this->routes[$route->getName()] = [
                         'class'  => $reflectionMethod->class,
                         'method' => $reflectionMethod->name,

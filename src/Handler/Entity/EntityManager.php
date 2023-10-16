@@ -4,9 +4,11 @@ namespace App\Handler\Entity;
 
 use App\Exception\Repository\RepositoryNotAttachedToAnyEntity;
 use App\Handler\Entity\Attribute\Entity;
+use App\Handler\Entity\Attribute\Property;
 use App\Handler\Repository\Repository;
 use App\Handler\Util\ClassFinder;
 use Exception;
+use ReflectionProperty;
 
 final class EntityManager
 {
@@ -64,6 +66,32 @@ final class EntityManager
 
                 self::$entities[$entity] = $repositoryClass;
             }
+
+            $entityProps = $reflectionEntity->getProperties(ReflectionProperty::IS_PRIVATE);
+
+            $allColumns = [];
+            $guardedColumns = [];
+            $notGuardedColumns = [];
+            foreach ($entityProps as $entityProp) {
+                $propertyAttributes = $entityProp->getAttributes(Property::class);
+                
+                foreach ($propertyAttributes as $propertyAttribute) {
+                    $propertyAttributesClass = $propertyAttribute->newInstance();
+                    $colName = $propertyAttributesClass->name ?? $entityProp->getName();
+
+                    $allColumns[] = $colName;
+
+                    if ($propertyAttributesClass->guarded) {
+                        $guardedColumns[] = $colName;
+                    } else {
+                        $notGuardedColumns[] = $colName;
+                    }
+                }
+            }
+
+            self::$repositories[self::$entities[$entity]]['columns']['all'] = $allColumns;
+            self::$repositories[self::$entities[$entity]]['columns']['guarded'] = $guardedColumns;
+            self::$repositories[self::$entities[$entity]]['columns']['notGuarded'] = $notGuardedColumns;
         }
     }
 

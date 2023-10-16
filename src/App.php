@@ -13,10 +13,12 @@ use App\Handler\Routing\Router;
 class App
 {
     private static Database $db;
+    private static EntityManager $entityManager;
 
     public function __construct(protected Router $router, protected Config $config)
     {
         static::$db = new Database($config->db ?? []);
+        static::$entityManager = new EntityManager();
     }
 
     public static function db(): Database
@@ -24,11 +26,14 @@ class App
         return static::$db;
     }
 
+    public static function entityManager(): EntityManager
+    {
+        return static::$entityManager;
+    }
+
     public function run()
     {
         try {
-            new EntityManager();
-
             echo $this->router->resolve($this->router);
         } catch (RouteNotFoundException) {
             http_response_code(404);
