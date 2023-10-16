@@ -5,14 +5,16 @@ declare(strict_types = 1);
 namespace App\Handler\Repository;
 
 use App\App;
+use App\Exception\Repository\NoColumnException;
 use App\Handler\Container;
+use App\Handler\Database\Database;
 use App\Handler\Entity\EntityManager;
 use Exception;
 use PDO;
 
 abstract class Repository
 {
-    protected $conn = '';
+    protected Database $conn;
     protected string $entity = '';
     protected string $table = '';
 
@@ -47,10 +49,45 @@ abstract class Repository
         return $dbh->fetch();
     }
 
+    public function findBy(string $column, mixed $value): array|bool
+    {
+        $this->validateColumn($column);
+
+        $dbh = $this->conn->prepare('SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE ' . $column . ' = :' . $column);
+
+        $dbh->bindValue($column , $value);
+
+        $dbh->execute();
+
+        return $dbh->fetchAll();
+    }
+
+    public function findOneBy(string $column, mixed $value): array|bool
+    {
+        $this->validateColumn($column);
+
+        $dbh = $this->conn->prepare('SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE ' . $column . ' = :' . $column);
+
+        $dbh->bindValue($column , $value);
+
+        $dbh->execute();
+
+        return $dbh->fetch();
+    }
+
     public function fetchAll(): array|false
     {
         return $this->conn
             ->query('SELECT ' . implode(',', $this->notGuardedCols) . ' FROM ' . $this->table)
             ->fetchAll();
+    }
+
+    protected function validateColumn($column): bool
+    {
+        if (!in_array($column, $this->allCols)) {
+            throw new NoColumnException($column, $this->table);
+        }
+
+        return true;
     }
 }

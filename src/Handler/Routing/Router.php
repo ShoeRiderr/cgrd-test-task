@@ -36,15 +36,6 @@ class Router
         }
     }
 
-    protected function __clone()
-    {
-    }
-
-    public function __wakeup()
-    {
-        throw new \Exception("Cannot unserialize singleton");
-    }
-
     /**
      * Define the base URI in order to exclude it in the route correspondence, useful when the project is called from a
      * sub-folder
@@ -102,6 +93,10 @@ class Router
         $request = (empty($request) ? '/' : $request);
         foreach ($this->routes as $route) {
             if ($this->matchRequest($request, $route['route'], $params)) {
+                if ($route['route']->getAuthRequired()) {
+                    $this->handleUnauthorizedUser();
+                }
+
                 return [
                     'class'  => $route['class'],
                     'method' => $route['method'],
@@ -113,6 +108,12 @@ class Router
         return null;
     }
 
+    private function handleUnauthorizedUser()
+    {
+        if (!is_user_logged_in()) {
+            header("Location: " . $_ENV['BASE_URL'] . "", true, 301);
+        }
+    }
     /**
      * Check if the user's request matches the given route
      *

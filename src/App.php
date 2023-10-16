@@ -25,6 +25,8 @@ class App
         $loader = new FilesystemLoader('../templates');
 
         static::$twig = new TwigEnvironment($loader);
+
+        session_start();
     }
 
     public static function db(): Database
