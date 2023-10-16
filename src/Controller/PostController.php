@@ -18,19 +18,19 @@ class PostController extends WebController
         parent::__construct();
     }
 
-    #[Route('/post', name: 'post_page', methods: ['GET'])]
+    #[Route('/post', name: 'post_page', methods: ['GET'], authRequired: true)]
     public function index()
     {
         return $this->render("post/index.html.twig");
     }
 
-    #[Route('/post', name: 'post_create', methods: ['POST'])]
+    #[Route('/post', name: 'post_create', methods: ['POST'], authRequired: true)]
     public function store()
     {
         echo "create post";
     }
 
-    #[Route('/post/{id<\d+>}', name: 'post_show', methods: ['GET'])]
+    #[Route('/post/{id<\d+>}', name: 'post_show', methods: ['GET'], authRequired: true)]
     public function show(array $parameters)
     {
         $id = (int) $parameters['id'];
@@ -40,7 +40,7 @@ class PostController extends WebController
         echo "show post";
     }
 
-    #[Route('/post/{id<\d+>}', name: 'post_update', methods: ['PUT', 'PATCH'])]
+    #[Route('/post/{id<\d+>}', name: 'post_update', methods: ['PUT', 'PATCH'], authRequired: true)]
     public function update(array $parameters)
     {
         $id = (int) $parameters['id'];
@@ -49,7 +49,7 @@ class PostController extends WebController
         echo "update post";
     }
 
-    #[Route('/post/{id<\d+>}', name: 'post_delete', methods: ['DELETE'])]
+    #[Route('/post/{id<\d+>}', name: 'post_delete', methods: ['DELETE'], authRequired: true)]
     public function delete(array $parameters)
     {
         $id = (int) $parameters['id'];

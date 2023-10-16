@@ -21,6 +21,7 @@ class Route
         private string $path,
         private string $name = '',
         private array $methods = ['GET'],
+        private bool $authRequired = false,
     ) {
         if (empty($this->name)) {
             $this->name = $this->path;
@@ -49,6 +50,14 @@ class Route
     public function getMethods(): array
     {
         return $this->methods;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getAuthRequired(): bool
+    {
+        return $this->authRequired;
     }
 
     /**

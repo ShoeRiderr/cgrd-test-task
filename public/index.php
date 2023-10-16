@@ -13,6 +13,8 @@ require "../vendor/autoload.php";
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->safeLoad();
 
+require_once('../src/helpers.php');
+
 $container = new Container();
 
 $router = new Router(
