@@ -1,15 +1,15 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Handler\Repository;
 
 use App\App;
+use App\Exception\Entity\EntityInstatiationException;
 use App\Exception\Repository\NoColumnException;
-use App\Handler\Container;
 use App\Handler\Database\Database;
+use App\Handler\Entity\AbstractEntity;
 use App\Handler\Entity\EntityManager;
-use Exception;
 use PDO;
 
 abstract class Repository
@@ -21,6 +21,10 @@ abstract class Repository
     protected array $guardedCols = [];
     protected array $notGuardedCols = [];
     protected array $allCols = [];
+    /**
+     * Associative array with column name as a key and property name as a value
+     */
+    protected array $entityProps = [];
 
     protected array $repositoryData = [];
     protected EntityManager $entityManager;
@@ -36,9 +40,10 @@ abstract class Repository
         $this->guardedCols = $this->repositoryData['columns']['guarded'] ?? [];
         $this->notGuardedCols = $this->repositoryData['columns']['notGuarded'] ?? [];
         $this->allCols = $this->repositoryData['columns']['all'] ?? [];
+        $this->entityProps = $this->repositoryData['properties'] ?? [];
     }
 
-    public function findById(string|int $id): array|bool
+    public function findById(string|int $id): ?AbstractEntity
     {
         $dbh = $this->conn->prepare('SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE id = :id');
 
@@ -46,40 +51,54 @@ abstract class Repository
 
         $dbh->execute();
 
-        return $dbh->fetch();
+        $result = $dbh->fetch();
+
+        return $this->getOneEntityFromArray($result);
     }
 
-    public function findBy(string $column, mixed $value): array|bool
+    /**
+     * @return null|AbstractEntity[]
+     */
+    public function findBy(string $column, mixed $value): ?array
     {
         $this->validateColumn($column);
 
         $dbh = $this->conn->prepare('SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE ' . $column . ' = :' . $column);
 
-        $dbh->bindValue($column , $value);
+        $dbh->bindValue($column, $value);
 
         $dbh->execute();
 
-        return $dbh->fetchAll();
+        $result =  $dbh->fetchAll() ?? [];
+
+        return $this->getCollectionEntityFromArray($result);
     }
 
-    public function findOneBy(string $column, mixed $value): array|bool
+    public function findOneBy(string $column, mixed $value): ?AbstractEntity
     {
         $this->validateColumn($column);
 
         $dbh = $this->conn->prepare('SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE ' . $column . ' = :' . $column);
 
-        $dbh->bindValue($column , $value);
+        $dbh->bindValue($column, $value);
 
         $dbh->execute();
 
-        return $dbh->fetch();
+        $result = $dbh->fetch();
+
+        return $this->getOneEntityFromArray($result);
     }
 
-    public function fetchAll(): array|false
+    /**
+     * @return null|AbstractEntity[]
+     */
+    public function findAll(): ?array
     {
-        return $this->conn
+        $result = $this->conn
             ->query('SELECT ' . implode(',', $this->notGuardedCols) . ' FROM ' . $this->table)
             ->fetchAll();
+
+        return $this->getCollectionEntityFromArray($result);
     }
 
     protected function validateColumn($column): bool
@@ -89,5 +108,30 @@ abstract class Repository
         }
 
         return true;
+    }
+
+    protected function getOneEntityFromArray(array $result): ?AbstractEntity
+    {
+        try {
+            $entity = new $this->entity();
+
+            return $entity->fromArrayToOneObject($this->entityProps, $result);
+        } catch (EntityInstatiationException) {
+            return null;
+        }
+    }
+
+    /**
+     * @return null|AbstractEntity[]
+     */
+    protected function getCollectionEntityFromArray(array $result): ?array
+    {
+        try {
+            $entity = new $this->entity();
+
+            return $entity->fromArrayToCollectionObject($this->entityProps, $result);
+        } catch (EntityInstatiationException) {
+            return null;
+        }
     }
 }

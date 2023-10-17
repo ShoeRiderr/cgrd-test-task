@@ -53,7 +53,9 @@ class App
             http_response_code(404);
 
             echo static::$twig->render('fail_response/not_found.html.twig');
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+
             http_response_code(500);
 
             echo static::$twig->render('fail_response/server_error.html.twig');

@@ -4,24 +4,25 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Handler\Entity\AbstractEntity;
 use App\Handler\Entity\Attribute\Entity;
 use App\Handler\Entity\Attribute\Property;
 use App\Repository\PostRepository;
 
 #[Entity(repositoryClass: PostRepository::class, table: 'posts')]
-class Post
+class Post extends AbstractEntity
 {
     #[Property()]
-    private int $id;
+    protected ?int $id;
 
     #[Property(name: 'user_id')]
-    private int $user;
+    protected ?int $user;
 
     #[Property]
-    private string $title;
+    protected ?string $title;
 
     #[Property]
-    private string $description;
+    protected ?string $description;
 
     public function setId(int $id): void
     {

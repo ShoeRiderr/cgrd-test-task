@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Post;
 use App\Handler\Controller\WebController;
 use App\Handler\Routing\Attribute\Route;
 use App\Repository\PostRepository;
@@ -21,6 +22,11 @@ class PostController extends WebController
     #[Route('/post', name: 'post_page', methods: ['GET'], authRequired: true)]
     public function index()
     {
+        /**
+         * @var null|Post[] $post
+         */
+        $posts = $this->postRepository->findAll();
+
         return $this->render("post/index.html.twig");
     }
 
@@ -34,8 +40,11 @@ class PostController extends WebController
     public function show(array $parameters)
     {
         $id = (int) $parameters['id'];
+
+        /**
+         * @var null|Post $post
+         */
         $post = $this->postRepository->findById($id);
-        var_dump($post);
 
         echo "show post";
     }
@@ -44,6 +53,10 @@ class PostController extends WebController
     public function update(array $parameters)
     {
         $id = (int) $parameters['id'];
+
+        /**
+         * @var null|Post $post
+         */
         $post = $this->postRepository->findById($id);
 
         echo "update post";
@@ -53,6 +66,10 @@ class PostController extends WebController
     public function delete(array $parameters)
     {
         $id = (int) $parameters['id'];
+
+        /**
+         * @var null|Post $post
+         */
         $post = $this->postRepository->findById($id);
 
         echo "delete post";

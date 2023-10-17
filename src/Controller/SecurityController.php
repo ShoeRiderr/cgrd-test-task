@@ -39,7 +39,9 @@ class SecurityController extends WebController
                 $_POST['name'],
                 $_POST['password'],
             );
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+
             header("Location: " . $_ENV['BASE_URL'] . "", true, 422);
         }
 
@@ -48,7 +50,10 @@ class SecurityController extends WebController
                 $loginDTO
             );
         } catch (BadCredentialsException) {
+            error_log($e->getMessage());
+
             header('Location: ' . $_ENV['BASE_URL'] . '', true, 301);
+
             return;
         }
 

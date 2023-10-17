@@ -10,6 +10,7 @@ use App\Handler\Entity\Attribute\Property;
 use App\Handler\Repository\Repository;
 use App\Handler\Util\ClassFinder;
 use Exception;
+use ReflectionMethod;
 use ReflectionProperty;
 
 final class EntityManager
@@ -56,41 +57,18 @@ final class EntityManager
 
             $entityAttributes = $reflectionEntity->getAttributes(Entity::class);
 
-            foreach ($entityAttributes as $entityAttribute) {
-                $attributesClass = $entityAttribute->newInstance();
+            self::handleEntityAttributes($entityAttributes, $entity);
 
-                $repositoryClass = $attributesClass->repositoryClass;
+            $entityProps = $reflectionEntity->getProperties(ReflectionProperty::IS_PROTECTED);
 
-                self::$repositories[$repositoryClass] = [
-                    'class'  => $entity,
-                    'table'  => $attributesClass->table,
-                ];
+            [
+                'properties' => $properties,
+                'allColumns' => $allColumns,
+                'guardedColumns' => $guardedColumns,
+                'notGuardedColumns' => $notGuardedColumns,
+            ] = self::handleEntityProperties($entityProps);
 
-                self::$entities[$entity] = $repositoryClass;
-            }
-
-            $entityProps = $reflectionEntity->getProperties(ReflectionProperty::IS_PRIVATE);
-
-            $allColumns = [];
-            $guardedColumns = [];
-            $notGuardedColumns = [];
-            foreach ($entityProps as $entityProp) {
-                $propertyAttributes = $entityProp->getAttributes(Property::class);
-
-                foreach ($propertyAttributes as $propertyAttribute) {
-                    $propertyAttributesClass = $propertyAttribute->newInstance();
-                    $colName = $propertyAttributesClass->name ?? $entityProp->getName();
-
-                    $allColumns[] = $colName;
-
-                    if ($propertyAttributesClass->guarded) {
-                        $guardedColumns[] = $colName;
-                    } else {
-                        $notGuardedColumns[] = $colName;
-                    }
-                }
-            }
-
+            self::$repositories[self::$entities[$entity]]['properties'] = $properties;
             self::$repositories[self::$entities[$entity]]['columns']['all'] = $allColumns;
             self::$repositories[self::$entities[$entity]]['columns']['guarded'] = $guardedColumns;
             self::$repositories[self::$entities[$entity]]['columns']['notGuarded'] = $notGuardedColumns;
@@ -124,5 +102,62 @@ final class EntityManager
         }
 
         return self::$repositories[$repository];
+    }
+
+    /**
+     * @param ReflectionProperty[] $entityProps
+     */
+    private static function handleEntityProperties(array $entityProps): array
+    {
+        // Associative array with column name as a key and property name as a value
+        $properties = [];
+        $allColumns = [];
+        $guardedColumns = [];
+        $notGuardedColumns = [];
+
+        foreach ($entityProps as $entityProp) {
+            $propertyAttributes = $entityProp->getAttributes(Property::class);
+            $propName = $entityProp->getName();
+            
+            foreach ($propertyAttributes as $propertyAttribute) {
+                $propertyAttributesClass = $propertyAttribute->newInstance();
+                $colName = $propertyAttributesClass->name ?? $propName;
+                $properties[$colName] = $propName;
+
+                $allColumns[] = $colName;
+
+                if ($propertyAttributesClass->guarded) {
+                    $guardedColumns[] = $colName;
+                } else {
+                    $notGuardedColumns[] = $colName;
+                }
+            }
+        }
+
+        return [
+            'properties' => $properties,
+            'allColumns' => $allColumns,
+            'guardedColumns' => $guardedColumns,
+            'notGuardedColumns' => $notGuardedColumns,
+        ];
+    }
+
+    /**
+     * @param ReflectionAttribute<T>[] $entityAttrs
+     */
+    private static function handleEntityAttributes(array $entityAttrs, string $entity): void
+    {
+        foreach ($entityAttrs as $entityAttribute) {
+            $attributesClass = $entityAttribute->newInstance();
+
+            $repositoryClass = $attributesClass->repositoryClass;
+
+            self::$repositories[$repositoryClass] = [
+                'class'  => $entity,
+                'table'  => $attributesClass->table,
+            ];
+
+            self::$entities[$entity] = $repositoryClass;
+        }
     }
 }

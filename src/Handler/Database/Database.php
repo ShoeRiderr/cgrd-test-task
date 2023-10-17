@@ -27,7 +27,9 @@ class Database
                 $config['pass'],
                 $config['options'] ?? $defaultOptions
             );
-        } catch (\PDOException $e) {
+        } catch (\PDOException $e) {            
+            error_log($e->getMessage());
+
             throw new \PDOException($e->getMessage(), (int) $e->getCode());
         }
     }

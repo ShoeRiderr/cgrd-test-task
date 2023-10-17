@@ -4,25 +4,25 @@ declare(strict_types = 1);
 
 namespace App\Entity;
 
+use App\Handler\Entity\AbstractEntity;
 use App\Handler\Entity\Attribute\Entity;
 use App\Repository\UserRepository;
 use App\Handler\Entity\Attribute\Property;
-use App\Handler\Entity\IEntity;
 
 #[Entity(repositoryClass: UserRepository::class, table: 'users')]
-class User implements IEntity
+class User extends AbstractEntity
 {
     #[Property]
-    private int $id;
+    protected ?int $id;
 
     #[Property]
-    private string $name;
+    protected ?string $name;
 
     #[Property]
-    private string $email;
+    protected ?string $email;
 
     #[Property(guarded: true)]
-    private string $password;
+    protected ?string $password;
 
     public function setId(int $id): void
     {
