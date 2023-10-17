@@ -90,7 +90,13 @@ class Router
             $baseURI = preg_quote($this->baseURI, '/');
             $request = preg_replace("/^{$baseURI}/", '', $request);
         }
+
         $request = (empty($request) ? '/' : $request);
+
+        $queryParams = parse_url($request, PHP_URL_QUERY);
+
+        $request = strtok($request, '?');
+
         foreach ($this->routes as $route) {
             if ($this->matchRequest($request, $route['route'], $params)) {
                 if ($route['route']->getAuthRequired()) {
@@ -137,9 +143,11 @@ class Router
         $requestArray = array_values(array_filter($requestArray, 'strlen'));
         $pathArray = array_values(array_filter($pathArray, 'strlen'));
 
+        $requestMethod = $_POST['_method'] ?? $_SERVER['REQUEST_METHOD'];
+
         if (
             !(count($requestArray) === count($pathArray))
-            || !(in_array($_SERVER['REQUEST_METHOD'], $route->getMethods(), true))
+            || !(in_array($requestMethod, $route->getMethods(), true))
         ) {
             return false;
         }

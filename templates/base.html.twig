@@ -7,15 +7,24 @@
 				Welcome!
 			{% endblock %}
 		</title>
-		<link rel="stylesheet" type="text/css" href="/assets/css/main.css"/>
+		<link rel="stylesheet" type="text/css" href="/assets/css/main.css"/> {% block stylesheets %}{% endblock %}
+		</head>
+		<body>
 
-		{% block stylesheets %}{% endblock %}
-	</head>
-	<body>
-		<div id="app" class="flex flex-justify-center">
-			<div class="container">
-				{% block body %}{% endblock %}
+			<div id="app" class="flex flex-justify-center">
+				<div class="container">
+					{% include 'secret/component/logo.html.twig' %}
+					{% include 'component/notification.html.twig' with {
+							'message': session['notification_message'],
+							'class': ('alert-' ~ session['notification_message_type'])
+						}
+						%}
+					{% block body %}{% endblock %}
+
+					{% if session['id'] is defined %}
+						{% include 'component/logout.html.twig' %}
+					{% endif %}
+				</div>
 			</div>
-		</div>
-	</body>
-</html>
+		</body>
+	</html>

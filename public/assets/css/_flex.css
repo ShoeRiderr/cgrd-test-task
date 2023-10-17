@@ -26,15 +26,15 @@
 }
 
 .flex.flex-justify-between {
-  justify-content: flex-space-between;
+  justify-content: space-between;
 }
 
 .flex.flex-justify-around {
-  justify-content: flex-space-around;
+  justify-content: space-around;
 }
 
 .flex.flex-justify-evenly {
-  justify-content: flex-space-evenly;
+  justify-content: space-evenly;
 }
 /*< Justify content */
 

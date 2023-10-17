@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace App\Handler\Repository;
 
 use App\App;
-use App\Exception\Entity\EntityInstatiationException;
 use App\Exception\Repository\NoColumnException;
 use App\Handler\Database\Database;
-use App\Handler\Entity\AbstractEntity;
 use App\Handler\Entity\EntityManager;
+use App\Handler\Repository\Trait\TypeGetter;
 use PDO;
 
 abstract class Repository
 {
+    use TypeGetter;
+
     protected Database $conn;
     protected string $entity = '';
     protected string $table = '';
@@ -21,10 +22,6 @@ abstract class Repository
     protected array $guardedCols = [];
     protected array $notGuardedCols = [];
     protected array $allCols = [];
-    /**
-     * Associative array with column name as a key and property name as a value
-     */
-    protected array $entityProps = [];
 
     protected array $repositoryData = [];
     protected EntityManager $entityManager;
@@ -43,7 +40,7 @@ abstract class Repository
         $this->entityProps = $this->repositoryData['properties'] ?? [];
     }
 
-    public function findById(string|int $id): ?AbstractEntity
+    public function findById(string|int $id): self
     {
         $dbh = $this->conn->prepare('SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE id = :id');
 
@@ -51,15 +48,12 @@ abstract class Repository
 
         $dbh->execute();
 
-        $result = $dbh->fetch();
+        $this->queryResult = $dbh->fetch();
 
-        return $this->getOneEntityFromArray($result);
+        return $this;
     }
 
-    /**
-     * @return null|AbstractEntity[]
-     */
-    public function findBy(string $column, mixed $value): ?array
+    public function findBy(string $column, mixed $value): self
     {
         $this->validateColumn($column);
 
@@ -69,12 +63,12 @@ abstract class Repository
 
         $dbh->execute();
 
-        $result =  $dbh->fetchAll() ?? [];
+        $this->queryResult =  $dbh->fetchAll() ?? [];
 
-        return $this->getCollectionEntityFromArray($result);
+        return $this;
     }
 
-    public function findOneBy(string $column, mixed $value): ?AbstractEntity
+    public function findOneBy(string $column, mixed $value): self
     {
         $this->validateColumn($column);
 
@@ -84,21 +78,18 @@ abstract class Repository
 
         $dbh->execute();
 
-        $result = $dbh->fetch();
+        $this->queryResult = $dbh->fetch();
 
-        return $this->getOneEntityFromArray($result);
+        return $this;
     }
 
-    /**
-     * @return null|AbstractEntity[]
-     */
-    public function findAll(): ?array
+    public function findAll(): self
     {
-        $result = $this->conn
+        $this->queryResult = $this->conn
             ->query('SELECT ' . implode(',', $this->notGuardedCols) . ' FROM ' . $this->table)
             ->fetchAll();
 
-        return $this->getCollectionEntityFromArray($result);
+        return $this;
     }
 
     protected function validateColumn($column): bool
@@ -108,30 +99,5 @@ abstract class Repository
         }
 
         return true;
-    }
-
-    protected function getOneEntityFromArray(array $result): ?AbstractEntity
-    {
-        try {
-            $entity = new $this->entity();
-
-            return $entity->fromArrayToOneObject($this->entityProps, $result);
-        } catch (EntityInstatiationException) {
-            return null;
-        }
-    }
-
-    /**
-     * @return null|AbstractEntity[]
-     */
-    protected function getCollectionEntityFromArray(array $result): ?array
-    {
-        try {
-            $entity = new $this->entity();
-
-            return $entity->fromArrayToCollectionObject($this->entityProps, $result);
-        } catch (EntityInstatiationException) {
-            return null;
-        }
     }
 }

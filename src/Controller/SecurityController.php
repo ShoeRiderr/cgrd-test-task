@@ -46,9 +46,7 @@ class SecurityController extends WebController
         }
 
         try {
-            $this->securityService->login(
-                $loginDTO
-            );
+            $this->securityService->login($loginDTO);
         } catch (BadCredentialsException) {
             error_log($e->getMessage());
 
@@ -57,8 +55,9 @@ class SecurityController extends WebController
             return;
         }
 
-        header("Location: " . $_ENV['BASE_URL'] . "/post", true, 301);
-        echo "login";
+        $_SESSION['notification_message'] = 'dupa';
+        $_SESSION['notification_message_type'] = 'success';
+        header("Location: " . $_ENV['BASE_URL'] . "/post");
     }
 
     #[Route('/logout', name: 'logout', methods: ['GET', 'POST'])]

@@ -28,6 +28,8 @@ class App
         static::$twig = new TwigEnvironment($loader);
 
         session_start();
+
+        static::$twig->addGlobal('session', $_SESSION);
     }
 
     public static function db(): Database
@@ -48,8 +50,8 @@ class App
     public function run()
     {
         try {
-            echo $this->router->resolve($this->router);
-        } catch (RouteNotFoundException) {
+            echo $this->router->resolve();
+        } catch (RouteNotFoundException $e) {
             http_response_code(404);
 
             echo static::$twig->render('fail_response/not_found.html.twig');

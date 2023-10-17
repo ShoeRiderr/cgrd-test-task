@@ -23,11 +23,13 @@ class PostController extends WebController
     public function index()
     {
         /**
-         * @var null|Post[] $post
+         * @var array $posts
          */
-        $posts = $this->postRepository->findAll();
+        $posts = $this->postRepository->findAll()->getArray();
 
-        return $this->render("post/index.html.twig");
+        $this->render("post/index.html.twig", [
+            'posts' => $posts
+        ]);
     }
 
     #[Route('/post', name: 'post_create', methods: ['POST'], authRequired: true)]
@@ -44,7 +46,8 @@ class PostController extends WebController
         /**
          * @var null|Post $post
          */
-        $post = $this->postRepository->findById($id);
+        $post = $this->postRepository->findById($id)
+            ->getArray();
 
         echo "show post";
     }

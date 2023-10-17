@@ -1,0 +1,13 @@
+.alert-error,
+.alert-success {
+  background: #fff0f0;
+  border: 2px solid #ffdada;
+  color: #df9696;
+  font-weight: bold;
+}
+
+.alert-success {
+  background: #f6fff0;
+  border-color: #e6ffcf;
+  color: #77b13b;
+}

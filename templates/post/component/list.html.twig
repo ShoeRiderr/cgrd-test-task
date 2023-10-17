@@ -1,0 +1,34 @@
+<div class="{{classes}}">
+	{% if posts|length > 0 %}
+		<h2 class="mb-8">All News</h2>
+	{% endif %}
+
+	{% for post in posts %}
+		<div class="box">
+			<div class="flex flex-justify-between">
+				<div>
+					<span class="mr-4 font-bold">
+						{{ post['title'] }}
+					</span>
+					<span>
+						{{ post['description'] }}
+					</span>
+				</div>
+				<div class="flex">
+					<a href="#" class="mr-4">
+						<img src="/assets/images/pencil.svg" alt="Edit" width="15px" height="15px"/>
+					</a>
+					<div>
+						{% set action = '/post/' ~ post['id'] %}
+						<form action="{{action}}" method="POST">
+							<input type="hidden" name="_method" value="DELETE"/>
+							<button class="pointer">
+								<img src="/assets/images/close.svg" alt="Delete" width="15px" height="15px"/>
+							</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	{% endfor %}
+</div>

@@ -8,11 +8,6 @@ namespace App\Handler\Routing\Attribute;
 class Route
 {
     /**
-     * Default regular expression when none is defined in the parameter
-     */
-    public const DEFAULT_REGEX = '[\w\-]+';
-
-    /**
      * @var array $parameters Keeps the parameters cached with the associated regex
      */
     private array $parameters = [];

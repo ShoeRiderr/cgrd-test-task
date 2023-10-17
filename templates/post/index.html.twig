@@ -1,12 +1,16 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}
-	Posts
+	Login
 {% endblock %}
 
 {% block body %}
-	<div>
-		<h1>Posts</h1>
-        
-	</div>
+	{% include 'post/component/list.html.twig' with {
+		'posts': posts,
+		'classes': 'mb-16'
+	} %}
+	{% include 'post/component/form.html.twig' with {
+		'title': 'Create News',
+		'action': '/post',
+	} %}
 {% endblock %}
