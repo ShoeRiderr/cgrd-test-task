@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App;
 
-use App\Exception\RouteNotFoundException;
+use App\Exception\Routing\RouteNotFoundException;
 use App\Handler\Database\Database;
 use App\Handler\Entity\EntityManager;
 use App\Handler\Routing\Router;
+use Throwable;
 use Twig\Environment as TwigEnvironment;
 use Twig\Loader\FilesystemLoader;
 
@@ -48,9 +49,14 @@ class App
     {
         try {
             echo $this->router->resolve($this->router);
-        } catch (RouteNotFoundException $e) {
-            // var_dump($e);
+        } catch (RouteNotFoundException) {
             http_response_code(404);
+
+            echo static::$twig->render('fail_response/not_found.html.twig');
+        } catch (Throwable) {
+            http_response_code(500);
+
+            echo static::$twig->render('fail_response/server_error.html.twig');
         }
     }
 }

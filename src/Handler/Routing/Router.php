@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Handler\Routing;
 
-use App\Exception\RouteNotFoundException;
+use App\Exception\Routing\RouteNotFoundException;
 use App\Handler\Container;
 use App\Handler\Routing\Attribute\Route;
 
@@ -108,10 +108,15 @@ class Router
         return null;
     }
 
-    private function handleUnauthorizedUser()
+    public function redirect(string $endpoint = '', int $statusCode = 301): void
+    {
+        header("Location: " . $_ENV['BASE_URL'] . $endpoint, true, $statusCode);
+    }
+
+    private function handleUnauthorizedUser(): void
     {
         if (!is_user_logged_in()) {
-            header("Location: " . $_ENV['BASE_URL'] . "", true, 301);
+            $this->redirect();
         }
     }
     /**
@@ -162,7 +167,10 @@ class Router
         return true;
     }
 
-    public function resolve()
+    /**
+     * @throws RouteNotFoundException
+     */
+    public function resolve(): void
     {
         // If there is a match, he will return the class and method associated
         // to the request as well as route parameters

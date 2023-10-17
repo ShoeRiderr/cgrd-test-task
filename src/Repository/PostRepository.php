@@ -13,4 +13,6 @@ class PostRepository extends Repository
     {
         parent::__construct(Post::class);
     }
+
+    
 }
