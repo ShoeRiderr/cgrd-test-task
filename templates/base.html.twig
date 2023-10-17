@@ -7,10 +7,15 @@
 				Welcome!
 			{% endblock %}
 		</title>
+		<link rel="stylesheet" type="text/css" href="/assets/css/main.css"/>
+
+		{% block stylesheets %}{% endblock %}
 	</head>
 	<body>
-		<div>
-			{% block body %}{% endblock %}
+		<div id="app" class="flex flex-justify-center">
+			<div class="container">
+				{% block body %}{% endblock %}
+			</div>
 		</div>
 	</body>
 </html>

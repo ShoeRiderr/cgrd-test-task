@@ -1,0 +1,15 @@
+.form-input,
+.form-submit {
+  padding: 0.6rem;
+  border: 2px solid #f6f6f6;
+  background-color: #fcfcfc;
+  border-radius: 8px;
+  margin-bottom: 0.8rem;
+}
+
+.form-submit {
+    padding: 1rem 0.8rem;
+    background: #16396B;
+    color: #fefefe;
+    cursor: pointer;
+}
