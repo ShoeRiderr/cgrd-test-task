@@ -29,7 +29,7 @@ class SecurityController extends WebController
     #[Route('/', name: 'login_page', methods: ['GET'])]
     public function loginPage()
     {
-        if (is_user_logged_in()) {
+        if (isUserLoggedIn()) {
             header("Location: " . $_ENV['BASE_URL'] . "/post", true, 301);
         }
 
@@ -61,7 +61,7 @@ class SecurityController extends WebController
     #[Route('/logout', name: 'logout', methods: ['GET', 'POST'])]
     public function logout(): void
     {
-        if (is_user_logged_in()) {
+        if (isUserLoggedIn()) {
             unset($_SESSION['id'], $_SESSION['name']);
 
             session_destroy();

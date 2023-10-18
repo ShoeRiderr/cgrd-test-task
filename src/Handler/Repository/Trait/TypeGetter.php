@@ -27,7 +27,7 @@ trait TypeGetter
         return $this->queryResult;
     }
 
-    protected function getOneEntityFromArray(): ?AbstractEntity
+    public function getOneEntityFromArray(): ?AbstractEntity
     {
         try {
             $entity = new $this->entity();
