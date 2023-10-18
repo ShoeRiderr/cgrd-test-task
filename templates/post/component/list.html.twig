@@ -15,9 +15,9 @@
 					</span>
 				</div>
 				<div class="flex">
-					<a href="#" class="mr-4">
+					<button class="mr-4 pointer" data-post-id="{{post.id}}">
 						<img src="/assets/images/pencil.svg" alt="Edit" width="15px" height="15px"/>
-					</a>
+					</button>
 					<div>
 						{% set action = '/post/' ~ post['id'] %}
 						<form action="{{action}}" method="POST">

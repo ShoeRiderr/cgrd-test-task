@@ -44,13 +44,7 @@ abstract class Repository
 
     public function findById(string|int $id): self
     {
-        $dbh = $this->conn->prepare('SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE id = :id');
-
-        $dbh->bindValue(':id', $id, PDO::PARAM_INT);
-
-        $dbh->execute();
-
-        $this->queryResult = $dbh->fetch();
+        $this->findOneBy('id', $id);
 
         return $this;
     }
@@ -65,7 +59,9 @@ abstract class Repository
 
         $dbh->execute();
 
-        $this->queryResult =  $dbh->fetchAll() ?? [];
+        $result =  $dbh->fetchAll();
+
+        $this->queryResult = !$result ? [] : $result;
 
         return $this;
     }
@@ -74,13 +70,17 @@ abstract class Repository
     {
         $this->validateColumn($column);
 
-        $dbh = $this->conn->prepare('SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE ' . $column . ' = :' . $column);
+        $sql = 'SELECT ' . implode(', ', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE ' . $column . ' = :' . $column;
 
-        $dbh->bindValue($column, $value);
+        $dbh = $this->conn->prepare($sql);
+
+        $dbh->bindValue($column, (string)$value);
 
         $dbh->execute();
 
-        $this->queryResult = $dbh->fetch();
+        $result = $dbh->fetch();
+
+        $this->queryResult = !$result ? [] : $result;
 
         return $this;
     }
@@ -89,7 +89,7 @@ abstract class Repository
     {
         $this->queryResult = $this->conn
             ->query('SELECT ' . implode(',', $this->notGuardedCols) . ' FROM ' . $this->table)
-            ->fetchAll();
+            ->fetchAll() ?? [];
 
         return $this;
     }

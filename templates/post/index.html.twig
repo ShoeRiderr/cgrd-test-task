@@ -4,6 +4,10 @@
 	Posts
 {% endblock %}
 
+{% block javascripts %}
+	<script type="module" src="/assets/js/post.js" defer></script>
+{% endblock %}
+
 {% block body %}
 	{% include 'post/component/list.html.twig' with {
 		'posts': posts,

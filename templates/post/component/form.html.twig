@@ -1,8 +1,15 @@
 <div>
-	<h2 id="form-title" class="mb-8">{{ title }}</h2>
-	<form action="{{action}}" method="POST" class="flex flex-column">
-		<input type="text" name="title" placeholder="Title" id="title" required class="box">
+	<div class="flex flex-justify-between flex-align-center">
+		<div>
+			<h2 id="form-title" class="mb-8">{{ title }}</h2>
+		</div>
+		<button id="close-edit" class="none pointer">
+			<img src="/assets/images/close.svg" alt="Edit" width="15px" height="15px"/>
+		</button>
+	</div>
+	<form action="{{action}}" id="form" method="POST" class="flex flex-column">
+		<input type="text" id="title" name="title" placeholder="Title" required class="box">
 		<textarea name="description" id="description" required class="box" placeholder="Description" rows="10"></textarea>
-		<input type="submit" value="Submit" class="button-primary bg-color-primary">
+		<input type="submit" id="submit-btn" value="Create" class="button-primary bg-color-primary">
 	</form>
 </div>

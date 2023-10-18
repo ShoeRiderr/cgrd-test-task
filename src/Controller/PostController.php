@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\DTO\PostDTO;
 use App\Entity\Post;
 use App\Enum\NotificationType;
+use App\Exception\Routing\RouteNotFoundException;
 use App\Handler\Controller\WebController;
 use App\Handler\Routing\Attribute\Route;
 use App\Repository\PostRepository;
@@ -60,11 +61,23 @@ class PostController extends WebController
     {
         $id = (int) $parameters['id'];
 
+        $requestHeaders = getallheaders();
+
         /**
          * @var null|Post $post
          */
         $post = $this->postRepository->findById($id)
             ->getArray();
+
+        if (empty($post)) {
+            throw new RouteNotFoundException();
+        }
+
+        if (isset($requestHeaders['Content-Type']) && $requestHeaders['Content-Type'] === 'application/json') {
+            echo json_encode($post);
+
+            return;
+        }
 
         echo "show post";
     }
