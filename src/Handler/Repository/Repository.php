@@ -5,28 +5,34 @@ declare(strict_types=1);
 namespace App\Handler\Repository;
 
 use App\App;
-use App\DTO\PostDTO;
+use App\Exception\Entity\EntityInstatiationException;
 use App\Exception\Repository\NoColumnException;
 use App\Handler\Database\Database;
 use App\Handler\Entity\AbstractEntity;
 use App\Handler\Entity\EntityManager;
-use App\Handler\Repository\Trait\TypeGetter;
-use PDO;
+use App\Handler\Repository\Trait\QueryParamHelper;
 
 abstract class Repository
 {
-    use TypeGetter;
+    use QueryParamHelper;
 
-    protected Database $conn;
-    protected string $entity = '';
-    protected string $table = '';
+    /**
+     * Associative array with column name as a key and property name as a value
+     */
+    protected array $entityProps = [];
+    protected array $queryResult = [];
 
+    protected Database $conn; // PDO connection
+    protected string $entity = ''; // Repository entity
+    protected string $table = ''; // Entity class
+
+    // Sql query helpers
     protected array $guardedCols = [];
     protected array $notGuardedCols = [];
     public array $allCols = [];
 
-    protected array $repositoryData = [];
-    protected EntityManager $entityManager;
+    protected array $entityData = []; // Entity columns and properties for sql query use
+    protected EntityManager $entityManager; // EntityManager instance
 
     public function __construct(string $entity)
     {
@@ -34,12 +40,12 @@ abstract class Repository
         $this->conn = App::db();
 
         $this->entityManager = App::entityManager();
-        $this->repositoryData = $this->entityManager->getRepositoryData($this::class);
-        $this->table = $this->repositoryData['table'] ?? '';
-        $this->guardedCols = $this->repositoryData['columns']['guarded'] ?? [];
-        $this->notGuardedCols = $this->repositoryData['columns']['notGuarded'] ?? [];
-        $this->allCols = $this->repositoryData['columns']['all'] ?? [];
-        $this->entityProps = $this->repositoryData['properties'] ?? [];
+        $this->entityData = $this->entityManager->getEntityData($this::class);
+        $this->table = $this->entityData['table'] ?? '';
+        $this->guardedCols = $this->entityData['columns']['guarded'] ?? [];
+        $this->notGuardedCols = $this->entityData['columns']['notGuarded'] ?? [];
+        $this->entityProps = $this->entityData['properties'] ?? [];
+        $this->allCols = array_keys($this->entityData['properties']) ?? [];
     }
 
     public function findById(string|int $id): self
@@ -51,15 +57,7 @@ abstract class Repository
 
     public function findBy(string $column, mixed $value): self
     {
-        $this->validateColumn($column);
-
-        $dbh = $this->conn->prepare('SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE ' . $column . ' = :' . $column);
-
-        $dbh->bindValue($column, $value);
-
-        $dbh->execute();
-
-        $result =  $dbh->fetchAll();
+        $result = $this->executeFindBy($column, $value)->fetchAll();
 
         $this->queryResult = !$result ? [] : $result;
 
@@ -68,17 +66,7 @@ abstract class Repository
 
     public function findOneBy(string $column, mixed $value): self
     {
-        $this->validateColumn($column);
-
-        $sql = 'SELECT ' . implode(', ', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE ' . $column . ' = :' . $column;
-
-        $dbh = $this->conn->prepare($sql);
-
-        $dbh->bindValue($column, (string)$value);
-
-        $dbh->execute();
-
-        $result = $dbh->fetch();
+        $result = $this->executeFindBy($column, $value)->fetch();
 
         $this->queryResult = !$result ? [] : $result;
 
@@ -87,8 +75,10 @@ abstract class Repository
 
     public function findAll(): self
     {
+        $sql = 'SELECT ' . implode(',', $this->notGuardedCols) . ' FROM ' . $this->table;
+
         $this->queryResult = $this->conn
-            ->query('SELECT ' . implode(',', $this->notGuardedCols) . ' FROM ' . $this->table)
+            ->query($sql)
             ->fetchAll() ?? [];
 
         return $this;
@@ -96,9 +86,16 @@ abstract class Repository
 
     public function delete(int $id): bool
     {
-        return $this->conn->prepare("DELETE FROM " . $this->table . " WHERE id=?")->execute([$id]);
+        $sql = "DELETE FROM " . $this->table . " WHERE id=?";
+
+        return $this->conn
+            ->prepare($sql)
+            ->execute([$id]);
     }
 
+    /**
+     * Method handles given entity object and create or update record in database
+     */
     public function handleEntity(AbstractEntity $entity): bool
     {
         /**
@@ -117,28 +114,82 @@ abstract class Repository
 
     public function create(array $data): bool
     {
-        $columns = array_keys($data);
-
-        $values = str_repeat('? ', count($columns));
-        $values = trim($values);
-        $values = explode(' ', $values);
-        $values = implode(', ', $values);
-
-        $columns = implode(', ', $columns);
+        ['columns' => $columns, 'values' => $values] = $this->prepareForCreateParamBinding($data);
 
         $sql = "INSERT INTO $this->table ($columns) VALUES ($values)";
 
-        return $this->conn->prepare($sql)->execute(array_values($data));
+        return $this->conn
+            ->prepare($sql)
+            ->execute(array_values($data));
     }
 
-    abstract public function update(array $data): bool;
+    public function update(array $data): bool
+    {
+        $columns = $this->prepareForUpdateParamBinding($data);
 
-    protected function validateColumn($column): bool
+        $sql = "UPDATE $this->table SET $columns WHERE id=:id";
+
+        return $this->conn->prepare($sql)->execute($data);
+    }
+
+    public function getObject(): array
+    {
+        if (is_array($this->queryResult[0])) {
+            return $this->getCollectionEntityFromArray();
+        }
+
+        return $this->getOneEntityFromArray();
+    }
+
+    public function getArray(): array
+    {
+        return $this->queryResult;
+    }
+
+    public function getOneEntityFromArray(): ?AbstractEntity
+    {
+        try {
+            $entity = new $this->entity();
+
+            return $entity->fromArrayToOneObject($this->entityProps, $this->queryResult);
+        } catch (EntityInstatiationException) {
+            return null;
+        }
+    }
+
+    public function validateColumn($column): bool
     {
         if (!in_array($column, $this->allCols)) {
             throw new NoColumnException($column, $this->table);
         }
 
         return true;
+    }
+
+    protected function executeFindBy(string $column, mixed $value)
+    {
+        $this->validateColumn($column);
+
+        $sql = 'SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE ' . $column . ' = :' . $column;
+
+        $builder = $this->conn->prepare($sql);
+        $builder->bindValue($column, $value);
+        $builder->execute();
+
+        return $builder;
+    }
+
+    /**
+     * @return null|AbstractEntity[]
+     */
+    protected function getCollectionEntityFromArray(): ?array
+    {
+        try {
+            $entity = new $this->entity();
+
+            return $entity->fromArrayToCollectionObject($this->entityProps, $this->queryResult);
+        } catch (EntityInstatiationException) {
+            return null;
+        }
     }
 }

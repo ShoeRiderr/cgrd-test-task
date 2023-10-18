@@ -20,6 +20,9 @@ abstract class WebController
         $this->twig = App::twig();
     }
 
+    /**
+     * Renders twig template
+     */
     protected function render(string $view, array $params = []): string
     {
         $flashMessage = $_SESSION['flashMessage'] ?? null;
@@ -40,15 +43,22 @@ abstract class WebController
         return $result;
     }
 
-    protected function setNotification(string $message, NotificationType $type)
+    /**
+     * Set message type and content which will be showed on the page as notification
+     */
+    protected function setFlashMessage(string $message, NotificationType $type)
     {
         $_SESSION['flashMessage'] = $message;
         $_SESSION['flashMessageType'] = $type->value;
     }
 
+    /**
+     * Action for invalid request data
+     */
     protected function handleInvalidInputData()
     {
-        $this->setNotification(self::INVALID_INPUT_MESSAGE, NotificationType::ERROR);
+        $this->setFlashMessage(self::INVALID_INPUT_MESSAGE, NotificationType::ERROR);
+
         header("Location: " . $_ENV['BASE_URL'] . "/post", true, 422);
     }
 }

@@ -28,8 +28,6 @@ class SecurityService
         $_SESSION['name'] = $user['name'];
         $_SESSION['id'] = $user['id'];
 
-        // session_regenerate_id();
-
         return true;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Handler\Database;
 
@@ -27,13 +27,16 @@ class Database
                 $config['pass'],
                 $config['options'] ?? $defaultOptions
             );
-        } catch (\PDOException $e) {            
+        } catch (\PDOException $e) {
             error_log($e->getMessage());
 
             throw new \PDOException($e->getMessage(), (int) $e->getCode());
         }
     }
 
+    /**
+     * Every attempt of call on class method will try to execute PDO instance method
+     */
     public function __call(string $name, array $arguments)
     {
         return call_user_func_array([$this->pdo, $name], $arguments);

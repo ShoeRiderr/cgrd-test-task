@@ -27,11 +27,4 @@ class UserRepository extends Repository
 
         return $dbh->fetch();
     }
-
-    public function update(array $data): bool
-    {
-        $sql = "UPDATE $this->table SET name=:name, email=:email, password=:password WHERE id=:id";
-
-        return $this->conn->prepare($sql)->execute($data);
-    }
 }

@@ -1,14 +1,11 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Handler\Util;
 
 class ClassFinder
 {
-    //This value should be the directory that contains composer.json
-    const appRoot = __DIR__ . "/../../../";
-
     public static function getClassesInNamespace($namespace)
     {
         $files = scandir(self::getNamespaceDirectory($namespace));
@@ -24,7 +21,7 @@ class ClassFinder
 
     private static function getDefinedNamespaces()
     {
-        $composerJsonPath = self::appRoot . 'composer.json';
+        $composerJsonPath = __ROOT__ . 'composer.json';
         $composerConfig = json_decode(file_get_contents($composerJsonPath));
 
         return (array) $composerConfig->autoload->{'psr-4'};
@@ -41,7 +38,7 @@ class ClassFinder
             $possibleNamespace = implode('\\', $namespaceFragments) . '\\';
 
             if (array_key_exists($possibleNamespace, $composerNamespaces)) {
-                return realpath(self::appRoot . $composerNamespaces[$possibleNamespace] . implode('/', $undefinedNamespaceFragments));
+                return realpath(__ROOT__ . $composerNamespaces[$possibleNamespace] . implode('/', $undefinedNamespaceFragments));
             }
 
             array_unshift($undefinedNamespaceFragments, array_pop($namespaceFragments));

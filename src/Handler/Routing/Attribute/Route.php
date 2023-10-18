@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Handler\Routing\Attribute;
 
@@ -53,31 +53,5 @@ class Route
     public function getAuthRequired(): bool
     {
         return $this->authRequired;
-    }
-
-    /**
-     * Checks the presence of parameters in the path of the route
-     *
-     * @return bool
-     */
-    public function hasParams(): bool
-    {
-        return (bool) preg_match('/{([\w\-%]+)(<(.+)>)?}/', $this->path);
-    }
-
-    /**
-     * Retrieves in key of the array, the names of the parameters as well as the regular expression (if there is one)
-     * in value
-     *
-     * @return array
-     */
-    public function fetchParams(): array
-    {
-        if (empty($this->parameters)) {
-            preg_match_all('/{([\w\-%]+)(?:<(.+?)>)?}/', $this->getPath(), $params);
-            $this->parameters = array_combine($params[1], $params[2]);
-        }
-
-        return $this->parameters;
     }
 }

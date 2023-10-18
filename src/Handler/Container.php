@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace App\Handler;
 
@@ -9,76 +9,87 @@ use Psr\Container\ContainerInterface;
 
 class Container implements ContainerInterface
 {
+    /**
+     * Array of class instances included in PSR 11 container.
+     */
     private array $entries = [];
 
-    public function get(string $id)
+    public function get(string $class)
     {
-        if ($this->has($id)) {
-            $entry = $this->entries[$id];
+        if ($this->has($class)) {
+            $entry = $this->entries[$class];
 
             return $entry($this);
         }
 
-        return $this->resolve($id);
+        return $this->resolve($class);
     }
 
-    public function has(string $id): bool
+    public function has(string $class): bool
     {
-        return isset($this->entries[$id]);
+        return isset($this->entries[$class]);
     }
 
-    public function set(string $id, callable $concrete): void
+    public function set(string $class, callable $concrete): void
     {
-        $this->entries[$id] = $concrete;
+        $this->entries[$class] = $concrete;
     }
 
-    public function resolve(string $id)
+    /**
+     * Resolve classes inside container.
+     * Method resolves successfuly classes without constructor, with constructor but without
+     * or with name typed (definded classes) parameters.
+     *
+     * Method not allow union type parameters.
+     */
+    public function resolve(string $class): mixed
     {
         // 1. Inspect the class that we are trying to get from the container
-        $reflectionClass = new \ReflectionClass($id);
+        $reflectionClass = new \ReflectionClass($class);
 
-        if (! $reflectionClass->isInstantiable()) {
-            throw new ContainerException('Class "' . $id . '" is not instantiable');
+        if (!$reflectionClass->isInstantiable()) {
+            throw new ContainerException('Class "' . $class . '" is not instantiable');
         }
 
         // 2. Inspect the constructor of the class
         $constructor = $reflectionClass->getConstructor();
 
-        if (! $constructor) {
-            return new $id;
+        if (!$constructor) {
+            return new $class;
         }
 
         // 3. Inspect the constructor parameters (dependencies)
         $parameters = $constructor->getParameters();
 
-        if (! $parameters) {
-            return new $id;
+        if (!$parameters) {
+            return new $class;
         }
 
         // 4. If the constructor parameter is a class then try to resolve that class using the container
         $dependencies = array_map(
-            function (\ReflectionParameter $param) use ($id) {
+            function (\ReflectionParameter $param) use ($class) {
                 $name = $param->getName();
                 $type = $param->getType();
 
-                if (! $type) {
+                if (!$type) {
                     throw new ContainerException(
-                        'Failed to resolve class "' . $id . '" because param "' . $name . '" is missing a type hint'
+                        'Failed to resolve class "' . $class . '" because param "' . $name . '" is missing a type hint'
                     );
                 }
 
+                // Union types are not allowed in class constructors 
                 if ($type instanceof \ReflectionUnionType) {
                     throw new ContainerException(
-                        'Failed to resolve class "' . $id . '" because of union type for param "' . $name . '"'
+                        'Failed to resolve class "' . $class . '" because of union type for param "' . $name . '"'
                     );
                 }
 
-                if ($type instanceof \ReflectionNamedType && ! $type->isBuiltin()) {
+                if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
                     return $this->get($type->getName());
                 }
 
                 throw new ContainerException(
-                    'Failed to resolve class "' . $id . '" because invalid param "' . $name . '"'
+                    'Failed to resolve class "' . $class . '" because invalid param "' . $name . '"'
                 );
             },
             $parameters

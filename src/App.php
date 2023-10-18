@@ -20,6 +20,8 @@ class App
 
     public function __construct(protected Router $router, protected Config $config)
     {
+        define('__ROOT__', __DIR__ . '/../');
+
         static::$db = new Database($config->db ?? []);
         static::$entityManager = new EntityManager();
 
@@ -50,12 +52,15 @@ class App
     public function run()
     {
         try {
+            // Process successful request
             echo $this->router->resolve();
         } catch (RouteNotFoundException $e) {
+            // Handle not found exception
             http_response_code(404);
 
             echo static::$twig->render('fail_response/not_found.html.twig');
         } catch (Throwable $e) {
+            // Handle server error exception
             error_log($e->getMessage());
 
             http_response_code(500);

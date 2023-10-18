@@ -9,8 +9,6 @@ use App\Handler\Entity\Attribute\Entity;
 use App\Handler\Entity\Attribute\Property;
 use App\Handler\Repository\Repository;
 use App\Handler\Util\ClassFinder;
-use Exception;
-use ReflectionMethod;
 use ReflectionProperty;
 
 final class EntityManager
@@ -38,13 +36,12 @@ final class EntityManager
 
             [
                 'properties' => $properties,
-                'allColumns' => $allColumns,
                 'guardedColumns' => $guardedColumns,
                 'notGuardedColumns' => $notGuardedColumns,
             ] = self::handleEntityProperties($entityProps);
 
             self::$repositories[self::$entities[$entity]]['properties'] = $properties;
-            self::$repositories[self::$entities[$entity]]['columns']['all'] = $allColumns;
+            self::$repositories[self::$entities[$entity]]['columns']['all'] = array_keys($properties);
             self::$repositories[self::$entities[$entity]]['columns']['guarded'] = $guardedColumns;
             self::$repositories[self::$entities[$entity]]['columns']['notGuarded'] = $notGuardedColumns;
         }
@@ -68,9 +65,11 @@ final class EntityManager
     }
 
     /**
+     * Return entity columns and properties
+     *
      * @throws RepositoryNotAttachedToAnyEntity
      */
-    final public static function getRepositoryData(string $repository): array
+    final public static function getEntityData(string $repository): array
     {
         if (!isset(self::$repositories[$repository])) {
             throw new RepositoryNotAttachedToAnyEntity($repository);
@@ -86,7 +85,6 @@ final class EntityManager
     {
         // Associative array with column name as a key and property name as a value
         $properties = [];
-        $allColumns = [];
         $guardedColumns = [];
         $notGuardedColumns = [];
 
@@ -99,8 +97,6 @@ final class EntityManager
                 $colName = $propertyAttributesClass->name ?? $propName;
                 $properties[$colName] = $propName;
 
-                $allColumns[] = $colName;
-
                 if ($propertyAttributesClass->guarded) {
                     $guardedColumns[] = $colName;
                 } else {
@@ -111,7 +107,6 @@ final class EntityManager
 
         return [
             'properties' => $properties,
-            'allColumns' => $allColumns,
             'guardedColumns' => $guardedColumns,
             'notGuardedColumns' => $notGuardedColumns,
         ];

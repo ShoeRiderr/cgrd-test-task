@@ -49,8 +49,8 @@ class PostController extends WebController
         $result = $this->postService->create($postDTO);
 
         $result ?
-            $this->setNotification('News was successfull created!', NotificationType::SUCCESS) :
-            $this->setNotification(self::ERROR_MESSAGE, NotificationType::ERROR);
+            $this->setFlashMessage('News was successfull created!', NotificationType::SUCCESS) :
+            $this->setFlashMessage(self::ERROR_MESSAGE, NotificationType::ERROR);
 
         header("Location: " . $_ENV['BASE_URL'] . "/post", true, 200);
     }
@@ -77,8 +77,6 @@ class PostController extends WebController
 
             return;
         }
-
-        echo "show post";
     }
 
     #[Route('/post/{id<\d+>}', name: 'post_update', methods: ['PUT', 'PATCH'], authRequired: true)]
@@ -101,8 +99,8 @@ class PostController extends WebController
         $result = $this->postService->update($postDTO, $post);
 
         $result ?
-            $this->setNotification('News was successfull changed!', NotificationType::SUCCESS) :
-            $this->setNotification(self::ERROR_MESSAGE, NotificationType::ERROR);
+            $this->setFlashMessage('News was successfull changed!', NotificationType::SUCCESS) :
+            $this->setFlashMessage(self::ERROR_MESSAGE, NotificationType::ERROR);
 
         header("Location: " . $_ENV['BASE_URL'] . "/post", true, 200);
     }
@@ -119,15 +117,15 @@ class PostController extends WebController
             $result = $this->postService->delete($id);
 
             $result ?
-                $this->setNotification('News was deleted!', NotificationType::SUCCESS) :
-                $this->setNotification(self::ERROR_MESSAGE, NotificationType::ERROR);
+                $this->setFlashMessage('News was deleted!', NotificationType::SUCCESS) :
+                $this->setFlashMessage(self::ERROR_MESSAGE, NotificationType::ERROR);
 
 
             header("Location: " . $_ENV['BASE_URL'] . "/post", true, 200);
         } catch (Throwable $e) {
             error_log($e->getMessage());
 
-            $this->setNotification(self::ERROR_MESSAGE, NotificationType::ERROR);
+            $this->setFlashMessage(self::ERROR_MESSAGE, NotificationType::ERROR);
 
             header("Location: " . $_ENV['BASE_URL'] . "/post", true, 422);
         }

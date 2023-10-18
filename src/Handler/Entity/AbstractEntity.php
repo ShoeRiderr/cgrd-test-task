@@ -24,6 +24,8 @@ abstract class AbstractEntity
     }
 
     /**
+     * Transform database record to entity object
+     *
      * @throws EntityInstatiationException
      */
     public function fromArrayToOneObject(array $entityProps, array $result): self
@@ -44,6 +46,8 @@ abstract class AbstractEntity
     }
 
     /**
+     * Transform databasse collection to array of entity objects
+     *
      * @return null|self[]
      */
     public function fromArrayToCollectionObject(array $entityProps, array $result): ?array
@@ -51,9 +55,20 @@ abstract class AbstractEntity
         return array_map(fn ($value) => $this->fromArrayToOneObject($entityProps, $value), $result);
     }
 
+    /**
+     * Return associative array with values assigned to database column names.
+     * Eg.
+     * [
+     *  'user_id' => 2,
+     *  'name' => 'test'
+     * ]
+     *
+     * @return array<string, mixed>
+     */
     public function toArray(array $entityProps): array
     {
         $result = [];
+
         foreach ($entityProps as $key => $value) {
             $result[$key] = $this->{$value};
         }

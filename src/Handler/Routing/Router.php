@@ -93,8 +93,6 @@ class Router
 
         $request = (empty($request) ? '/' : $request);
 
-        $queryParams = parse_url($request, PHP_URL_QUERY);
-
         $request = strtok($request, '?');
 
         foreach ($this->routes as $route) {

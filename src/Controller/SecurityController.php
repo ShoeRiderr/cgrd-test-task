@@ -72,7 +72,7 @@ class SecurityController extends WebController
 
     private function handleLoginInvalidCredentials(): void
     {
-        $this->setNotification(self::INVALID_CREDENTIALS_MESSAGE, NotificationType::ERROR);
+        $this->setFlashMessage(self::INVALID_CREDENTIALS_MESSAGE, NotificationType::ERROR);
 
         header('Location: ' . $_ENV['BASE_URL'] . '', true, 422);
     }
