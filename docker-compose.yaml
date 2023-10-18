@@ -25,6 +25,8 @@ services:
       - ./env/mysql.env
     ports:
       - '3306:3306'
+    volumes:
+      - ./sqldump:/home
   composer:
     build:
       context: ./dockerfiles
