@@ -14,5 +14,10 @@ class PostRepository extends Repository
         parent::__construct(Post::class);
     }
 
-    
+    public function update(array $data): bool
+    {
+        $sql = "UPDATE $this->table SET user_id=:user_id, title=:title, description=:description WHERE id=:id";
+
+        return $this->conn->prepare($sql)->execute($data);
+    }
 }

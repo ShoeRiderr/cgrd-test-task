@@ -21,10 +21,17 @@ class UserRepository extends Repository
 
         $dbh = $this->conn->prepare('SELECT ' . implode(',', $this->allCols) .  ' FROM ' . $this->table . ' WHERE name = :name');
 
-        $dbh->bindValue(':name' , $name, PDO::PARAM_STR);
+        $dbh->bindValue(':name', $name, PDO::PARAM_STR);
 
         $dbh->execute();
 
         return $dbh->fetch();
+    }
+
+    public function update(array $data): bool
+    {
+        $sql = "UPDATE $this->table SET name=:name, email=:email, password=:password WHERE id=:id";
+
+        return $this->conn->prepare($sql)->execute($data);
     }
 }

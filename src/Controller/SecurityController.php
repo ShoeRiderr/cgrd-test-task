@@ -5,18 +5,23 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\DTO\LoginDTO;
+use App\Enum\NotificationType;
 use App\Exception\Security\BadCredentialsException;
 use App\Handler\Controller\WebController;
 use App\Handler\Routing\Attribute\Route;
 use App\Repository\UserRepository;
 use App\Service\SecurityService;
+use App\Validation\LoginValidation;
 use Throwable;
 
 class SecurityController extends WebController
 {
+    protected const INVALID_CREDENTIALS_MESSAGE = 'Wrong Login Data!';
+
     public function __construct(
         private UserRepository $userRepository,
-        private SecurityService $securityService
+        private SecurityService $securityService,
+        private LoginValidation $loginValidation
     ) {
         parent::__construct();
     }
@@ -34,29 +39,22 @@ class SecurityController extends WebController
     #[Route('/login', name: 'login', methods: ['POST'])]
     public function login()
     {
-        try {
-            $loginDTO = new LoginDTO(
-                $_POST['name'],
-                $_POST['password'],
-            );
-        } catch (Throwable $e) {
-            error_log($e->getMessage());
+        $loginDTO = $this->loginValidation->validate();
 
-            header("Location: " . $_ENV['BASE_URL'] . "", true, 422);
+        if (!$loginDTO) {
+            $this->handleLoginInvalidCredentials();
         }
 
         try {
             $this->securityService->login($loginDTO);
-        } catch (BadCredentialsException) {
+        } catch (BadCredentialsException $e) {
             error_log($e->getMessage());
 
-            header('Location: ' . $_ENV['BASE_URL'] . '', true, 301);
+            $this->handleLoginInvalidCredentials();
 
             return;
         }
 
-        $_SESSION['notification_message'] = 'dupa';
-        $_SESSION['notification_message_type'] = 'success';
         header("Location: " . $_ENV['BASE_URL'] . "/post");
     }
 
@@ -70,5 +68,12 @@ class SecurityController extends WebController
 
             header("Location: " . $_ENV['BASE_URL'] . "", true, 301);
         }
+    }
+
+    private function handleLoginInvalidCredentials(): void
+    {
+        $this->setNotification(self::INVALID_CREDENTIALS_MESSAGE, NotificationType::ERROR);
+
+        header('Location: ' . $_ENV['BASE_URL'] . '', true, 422);
     }
 }

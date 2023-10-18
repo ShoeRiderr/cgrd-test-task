@@ -15,37 +15,12 @@ use ReflectionProperty;
 
 final class EntityManager
 {
-    private static $instance = '';
     private static array $repositories = [];
     private static array $entities = [];
 
     public function __construct()
     {
         self::matchWithRepositories();
-    }
-
-    protected function __clone()
-    {
-    }
-
-    public function __wakeup()
-    {
-        throw new Exception("Cannot unserialize EntityManager class");
-    }
-
-    public static function getInstance()
-    {
-        if (!isset(self::$instance)) {
-            // Note that here we use the "static" keyword instead of the actual
-            // class name. In this context, the "static" keyword means "the name
-            // of the current class". That detail is important because when the
-            // method is called on the subclass, we want an instance of that
-            // subclass to be created here.
-
-            self::$instance = new static();
-        }
-
-        return self::$instance;
     }
 
     final public static function matchWithRepositories()
@@ -118,7 +93,7 @@ final class EntityManager
         foreach ($entityProps as $entityProp) {
             $propertyAttributes = $entityProp->getAttributes(Property::class);
             $propName = $entityProp->getName();
-            
+
             foreach ($propertyAttributes as $propertyAttribute) {
                 $propertyAttributesClass = $propertyAttribute->newInstance();
                 $colName = $propertyAttributesClass->name ?? $propName;

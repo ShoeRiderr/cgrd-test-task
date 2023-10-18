@@ -12,9 +12,6 @@ use App\Repository\PostRepository;
 #[Entity(repositoryClass: PostRepository::class, table: 'posts')]
 class Post extends AbstractEntity
 {
-    #[Property()]
-    protected ?int $id;
-
     #[Property(name: 'user_id')]
     protected ?int $user;
 
@@ -23,16 +20,6 @@ class Post extends AbstractEntity
 
     #[Property]
     protected ?string $description;
-
-    public function setId(int $id): void
-    {
-        $this->id = $id;
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
-    }
 
     public function setUser(int $user): void
     {

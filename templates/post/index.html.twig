@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}
-	Login
+	Posts
 {% endblock %}
 
 {% block body %}
@@ -11,6 +11,6 @@
 	} %}
 	{% include 'post/component/form.html.twig' with {
 		'title': 'Create News',
-		'action': '/post',
+		'action': '/post'
 	} %}
 {% endblock %}

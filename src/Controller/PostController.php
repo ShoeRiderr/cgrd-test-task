@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\DTO\PostDTO;
 use App\Entity\Post;
+use App\Enum\NotificationType;
 use App\Handler\Controller\WebController;
 use App\Handler\Routing\Attribute\Route;
 use App\Repository\PostRepository;
 use App\Service\PostService;
+use App\Validation\PostValidation;
+use Throwable;
 
 class PostController extends WebController
 {
     public function __construct(
         private PostService $postService,
         private PostRepository $postRepository,
+        private PostValidation $postValidation
     ) {
         parent::__construct();
     }
@@ -35,7 +40,19 @@ class PostController extends WebController
     #[Route('/post', name: 'post_create', methods: ['POST'], authRequired: true)]
     public function store()
     {
-        echo "create post";
+        $postDTO = $this->postValidation->validate();
+
+        if (!$postDTO) {
+            $this->handleInvalidInputData();
+        }
+
+        $result = $this->postService->create($postDTO);
+
+        $result ?
+            $this->setNotification('News was successfull created!', NotificationType::SUCCESS) :
+            $this->setNotification(self::ERROR_MESSAGE, NotificationType::ERROR);
+
+        header("Location: " . $_ENV['BASE_URL'] . "/post", true, 200);
     }
 
     #[Route('/post/{id<\d+>}', name: 'post_show', methods: ['GET'], authRequired: true)]
@@ -57,24 +74,50 @@ class PostController extends WebController
     {
         $id = (int) $parameters['id'];
 
+        $postDTO = $this->postValidation->validate();
+
+        if (!$postDTO) {
+            $this->handleInvalidInputData();
+        }
+
         /**
          * @var null|Post $post
          */
-        $post = $this->postRepository->findById($id);
+        $post = $this->postRepository->findById($id)
+            ->getOneEntityFromArray();
 
-        echo "update post";
+        $result = $this->postService->update($postDTO, $post);
+
+        $result ?
+            $this->setNotification('News was successfull changed!', NotificationType::SUCCESS) :
+            $this->setNotification(self::ERROR_MESSAGE, NotificationType::ERROR);
+
+        header("Location: " . $_ENV['BASE_URL'] . "/post", true, 200);
     }
 
     #[Route('/post/{id<\d+>}', name: 'post_delete', methods: ['DELETE'], authRequired: true)]
     public function delete(array $parameters)
     {
-        $id = (int) $parameters['id'];
+        try {
+            $id = (int) $parameters['id'];
 
-        /**
-         * @var null|Post $post
-         */
-        $post = $this->postRepository->findById($id);
+            /**
+             * @var bool $result
+             */
+            $result = $this->postService->delete($id);
 
-        echo "delete post";
+            $result ?
+                $this->setNotification('News was deleted!', NotificationType::SUCCESS) :
+                $this->setNotification(self::ERROR_MESSAGE, NotificationType::ERROR);
+
+
+            header("Location: " . $_ENV['BASE_URL'] . "/post", true, 200);
+        } catch (Throwable $e) {
+            error_log($e->getMessage());
+
+            $this->setNotification(self::ERROR_MESSAGE, NotificationType::ERROR);
+
+            header("Location: " . $_ENV['BASE_URL'] . "/post", true, 422);
+        }
     }
 }

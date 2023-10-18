@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Handler\Repository;
 
 use App\App;
+use App\DTO\PostDTO;
 use App\Exception\Repository\NoColumnException;
 use App\Handler\Database\Database;
+use App\Handler\Entity\AbstractEntity;
 use App\Handler\Entity\EntityManager;
 use App\Handler\Repository\Trait\TypeGetter;
 use PDO;
@@ -21,7 +23,7 @@ abstract class Repository
 
     protected array $guardedCols = [];
     protected array $notGuardedCols = [];
-    protected array $allCols = [];
+    public array $allCols = [];
 
     protected array $repositoryData = [];
     protected EntityManager $entityManager;
@@ -91,6 +93,45 @@ abstract class Repository
 
         return $this;
     }
+
+    public function delete(int $id): bool
+    {
+        return $this->conn->prepare("DELETE FROM " . $this->table . " WHERE id=?")->execute([$id]);
+    }
+
+    public function handleEntity(AbstractEntity $entity): bool
+    {
+        /**
+         * @var array $data
+         */
+        $data = $entity->toArray($this->entityProps);
+
+        if (!$entity->getId()) {
+            unset($data['id']);
+
+            return $this->create($data);
+        }
+
+        return $this->update($data);
+    }
+
+    public function create(array $data): bool
+    {
+        $columns = array_keys($data);
+
+        $values = str_repeat('? ', count($columns));
+        $values = trim($values);
+        $values = explode(' ', $values);
+        $values = implode(', ', $values);
+
+        $columns = implode(', ', $columns);
+
+        $sql = "INSERT INTO $this->table ($columns) VALUES ($values)";
+
+        return $this->conn->prepare($sql)->execute(array_values($data));
+    }
+
+    abstract public function update(array $data): bool;
 
     protected function validateColumn($column): bool
     {

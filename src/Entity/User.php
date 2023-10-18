@@ -13,9 +13,6 @@ use App\Handler\Entity\Attribute\Property;
 class User extends AbstractEntity
 {
     #[Property]
-    protected ?int $id;
-
-    #[Property]
     protected ?string $name;
 
     #[Property]
@@ -23,16 +20,6 @@ class User extends AbstractEntity
 
     #[Property(guarded: true)]
     protected ?string $password;
-
-    public function setId(int $id): void
-    {
-        $this->id = $id;
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
-    }
 
     public function setName(string $name): void
     {
