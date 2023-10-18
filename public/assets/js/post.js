@@ -1,19 +1,25 @@
 import { fetchAll } from "./api/post.js";
-import { handleNodeGroup, changeAttributeValue } from "./utils/node.js";
+import { addOnClickNodeListEl, changeAttributeValue } from "./utils/node.js";
 
 let post = {};
+
+// Node list for post edit
+const editPostBtnList = document.querySelectorAll("[data-post-id]");
+
+// Nodes to transform when switching form type
 const submitBtn = document.getElementById("submit-btn");
 const formTitle = document.getElementById("form-title");
 const closeEditBtn = document.getElementById("close-edit");
-const editBtns = document.querySelectorAll("[data-post-id]");
 
 // FormFields
 const form = document.getElementById("form");
 const title = document.getElementById("title");
 const description = document.getElementById("description");
 
+// Wait for loading all components to the page
 window.onload = () => {
-  handleNodeGroup(editBtns, handleEditBtns);
+  // Add onclick event listener for Nodes from editPostBtnList Node list 
+  addOnClickNodeListEl(editPostBtnList, handleEditBtns);
 };
 
 // Handle edit post buttons
@@ -23,25 +29,23 @@ const handleEditBtns = async (event, node) => {
   await editPost(postId);
 };
 
+// Listener for close button
 closeEditBtn.onclick = async (e) => {
-  await closeEdit();
+  await _closeEditForm();
 };
 
+// Method for fetching post and switch to edit form
 async function editPost(id) {
-  post = await (await fetchAll(id)).json();
+  try {
+    post = await (await fetchAll(id)).json();
 
-  await _handleEditResponse();
-}
-
-async function _handleEditResponse() {
-  if (Object.keys(post).length > 0) {
-    openEdit();
-  } else {
-    closeEdit();
+    await _openEditForm();
+  } catch (error) {
+    console.log(error);
   }
 }
 
-async function closeEdit() {
+async function _closeEditForm() {
   submitBtn.value = "Create";
   formTitle.textContent = "Create News";
   closeEditBtn.classList.add("none");
@@ -51,10 +55,10 @@ async function closeEdit() {
 
   await changeAttributeValue("form", "action", `/post`);
 
-  await handleForm(false);
+  await _handleForm(false);
 }
 
-async function openEdit() {
+async function _openEditForm() {
   submitBtn.value = "Save";
   formTitle.textContent = "Edit News";
   closeEditBtn.classList.remove("none");
@@ -64,26 +68,14 @@ async function openEdit() {
 
   await changeAttributeValue("form", "action", `/post/${post.id}`);
 
-  await handleForm(true);
+  await _handleForm(true);
 }
 
-async function handleForm(isEdit = false) {
-  if (isEdit) {
-    _handleMethodInput(isEdit);
-
-    return;
-  }
-
-  _handleMethodInput();
-}
-
-async function _handleMethodInput(isEdit = false) {
+async function _handleForm(isEdit = false) {
   const formMethodInput = form.querySelector('[name="_method"]');
 
   if (!isEdit) {
     formMethodInput.remove();
-
-    return;
   }
 
   if (!formMethodInput) {

@@ -10,26 +10,28 @@
 		<link rel="stylesheet" type="text/css" href="/assets/css/main.css"/>
 		{% block stylesheets %}{% endblock %}
 
-		{% block javascripts %}{% endblock %}
-		</head>
-		<body>
+		{% block javascripts %}
+			<script type="module" src="/assets/js/main.js" defer></script>
+		{% endblock %}
+	</head>
+	<body>
 
-			<div id="app" class="flex flex-justify-center">
-				<div class="container">
-					{% include 'secret/component/logo.html.twig' %}
-					{% if (flashMessage is defined and flashMessageType is defined ) %}
-						{% include 'component/notification.html.twig' with {
+		<div id="app" class="flex flex-justify-center">
+			<div class="container">
+				{% include 'secret/component/logo.html.twig' %}
+				{% if (flashMessage is defined and flashMessageType is defined ) %}
+					{% include 'component/notification.html.twig' with {
 							'message': flashMessage,
 							'class': ('alert-' ~ flashMessageType)
 						}
 						%}
-					{% endif %}
-					{% block body %}{% endblock %}
+				{% endif %}
+				{% block body %}{% endblock %}
 
-					{% if session['id'] is defined %}
-						{% include 'component/logout.html.twig' %}
-					{% endif %}
-				</div>
+				{% if session['id'] is defined %}
+					{% include 'component/logout.html.twig' %}
+				{% endif %}
 			</div>
-		</body>
-	</html>
+		</div>
+	</body>
+</html>

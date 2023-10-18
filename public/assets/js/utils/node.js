@@ -1,4 +1,5 @@
-export const handleNodeGroup = (nodes, callback) => {
+// Add onClick event to Node list elements
+export const addOnClickNodeListEl = (nodes, callback) => {
   let i;
 
   for (i = 0; i < nodes.length; i += 1) {
