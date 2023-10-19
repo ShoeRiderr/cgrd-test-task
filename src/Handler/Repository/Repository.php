@@ -57,7 +57,7 @@ abstract class Repository
 
     public function findBy(string $column, mixed $value): self
     {
-        $result = $this->executeFindBy($column, $value)->fetchAll();
+        $result = $this->executeFindBy([$column => $value])->fetchAll();
 
         $this->queryResult = !$result ? [] : $result;
 
@@ -66,7 +66,7 @@ abstract class Repository
 
     public function findOneBy(string $column, mixed $value): self
     {
-        $result = $this->executeFindBy($column, $value)->fetch();
+        $result = $this->executeFindBy([$column => $value])->fetch();
 
         $this->queryResult = !$result ? [] : $result;
 
@@ -166,17 +166,49 @@ abstract class Repository
         return true;
     }
 
-    protected function executeFindBy(string $column, mixed $value)
+    public function validateColumns(array $columns)
     {
-        $this->validateColumn($column);
+        foreach ($columns as $column) {
+            $this->validateColumn($column);
+        }
 
-        $sql = 'SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . ' WHERE ' . $column . ' = :' . $column;
+        return true;
+    }
+
+    /**
+     * Associative array with values attached to column name as a key 
+     * @param array $columnValue
+     */
+    protected function executeFindBy(array $columnValue)
+    {
+        $columns = array_keys($columnValue);
+        $this->validateColumns($columns);
+
+        $whereClause = $this->prepereWhereClause($columns);
+        $sql = 'SELECT ' . implode(',', $this->notGuardedCols) .  ' FROM ' . $this->table . $whereClause;
 
         $builder = $this->conn->prepare($sql);
-        $builder->bindValue($column, $value);
+
+        foreach ($columnValue as $column => $value) {
+            $builder->bindValue($column, $value);
+        }
+
         $builder->execute();
 
         return $builder;
+    }
+
+    protected function prepereWhereClause(array $columns): string
+    {
+        $result = array_map(function ($column, $index) {
+            if ($index > 0) {
+                return " AND $column = :$column";
+            }
+
+            return " WHERE $column = :$column";
+        }, $columns, array_keys($columns));
+
+        return implode(', ', $result);
     }
 
     /**
