@@ -2,7 +2,7 @@
 
 ## Start project locally
 
-For this project you nedd to have installed and configured docker on your maschine.
+For this project you will need installed and configured docker on your machine.
 
 First open the terminal and make sure that you are in root folder of the project.
 After making sure, in command line type:
