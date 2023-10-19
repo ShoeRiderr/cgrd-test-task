@@ -73,3 +73,5 @@ PASSWORD=secret
 ```
 
 After connecting to the server import `sqldump/database-dump.sql` file into `homstead` database and you are ready to use website.
+
+Website will be available on (http://localhost:8000)[http://localhost:8000]
