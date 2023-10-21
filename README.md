@@ -16,6 +16,11 @@ To stop all cotainer type:
 ```
 docker-compose down
 ```
+Also make copy of `.env.example` file by typing in root folder following command:
+
+```
+cp .env.example .env
+```
 
 For working application you will need to import `database-dump.sql` file into running in container database.
 To do that you have 2 options:
